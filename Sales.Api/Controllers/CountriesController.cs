@@ -16,13 +16,13 @@ namespace Sales.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> GetAsync()
         {
             return Ok(await _context.Countries.ToListAsync());
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post(Country country)
+        public async Task<ActionResult> PostAsync(Country country)
         {
             _context.Add(country);
             await _context.SaveChangesAsync();
