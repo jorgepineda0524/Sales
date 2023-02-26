@@ -16,12 +16,15 @@ namespace Sales.Api.Data
 
         public DbSet<State> States { get; set; }
 
+        public DbSet<Category> Categories { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Country>().HasIndex(o => o.Name).IsUnique();
             modelBuilder.Entity<State>().HasIndex("CountryId","Name").IsUnique();
             modelBuilder.Entity<City>().HasIndex("StateId","Name").IsUnique();
+            modelBuilder.Entity<Category>().HasIndex(o => o.Name).IsUnique();
         }
     }
 }
