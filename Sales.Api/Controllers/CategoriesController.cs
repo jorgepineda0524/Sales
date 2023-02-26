@@ -6,7 +6,7 @@ using Sales.Shared.Entities;
 namespace Sales.Api.Controllers
 {
     [ApiController]
-    [Route("/api/countries")]
+    [Route("/api/categories")]
     public class CategoriesController : ControllerBase
     {
         private readonly DataContext _context;
