@@ -1,0 +1,49 @@
+﻿@typeparam Titem
+
+@if (MyList is null)
+{
+    @if (Loadig is null)
+    {
+        <div class="align-items-center">
+            <img src="https://i.pinimg.com/originals/f1/79/90/f179907b01caacdc35af6a0f27bc6616.gif" />
+        </div>
+        <p>Cargando...</p>
+    }
+    else
+    {
+        @Loadig
+    }
+}else if(MyList.Count == 0)
+{
+    @if (NoRecords is null)
+    {
+        <div class="align-items-center">
+            <p>No hay registros para mostrar</p>
+        </div>
+    }
+    else
+    {
+        @NoRecords
+    }
+}
+else
+{
+    @Body   
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? Loadig { get; set; }
+
+    [Parameter]
+    public RenderFragment? NoRecords { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment Body { get; set; } = null!;
+
+    [Parameter]
+    [EditorRequired]
+    public List<Titem> MyList { get; set; } = null!;
+
+}
