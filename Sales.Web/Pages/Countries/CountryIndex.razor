@@ -7,6 +7,8 @@
 
 <a class="btn btn-primary mb-3" href="/countries/create">Nuevo País</a>
 
+<Pagination CurrentPage="1" TotalPages="10" SelectedPage="SelectedPageAsync" />
+
 <GenericList MyList="Countries">
   
     <Body>
@@ -14,7 +16,8 @@
             <thead>
                 <tr>
                     <th>País</th>
-                    <th>Estados / Departamentos</th>
+                    <th style="width:220px">Estados / Departamentos</th>
+                    <th style="width:260px"></th>
                 </tr>
             </thead>
             <tbody>
@@ -44,16 +47,47 @@
 
 @code {
     public List<Country>? Countries { get; set; }
+    private int currentPage = 1;
+    public int totalPages;
 
     protected async override Task OnInitializedAsync()
     {
         await LoadAsync();
     }
 
-    private async Task LoadAsync()
+    private async Task LoadAsync(int page = 1)
     {
-        var responseHppt = await repository.Get<List<Country>>("/api/countries");
-        Countries = responseHppt.Response;
+        try
+        {
+            var responseHttp = await repository.Get<List<Country>>("api/countries");
+            Countries = responseHttp.Response;
+            //string url1 = $"api/countries?page={page}";
+            //string url2 = $"api/countries/totalPages";
+
+            //var responseHttp = await repository.Get<List<Country>>(url1);
+            //var responseHttp2 = await repository.Get<int>(url2);
+            //Countries = responseHttp.Response!;
+
+            var error = responseHttp.HttpResponseMessage.ToString();
+            if (responseHttp.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                var message = await responseHttp.GetErrorMessageAsync();
+                await sweetAlertServie.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            //totalPages = responseHttp2.Response!;
+        }
+        catch (Exception ex)
+        {
+            
+        }
+       
+    }
+
+    private async Task SelectedPageAsync(int page)
+    {
+        //currentPage = page;
+        //await LoadAsync(page);
     }
 
     private async Task DeleteAsync(int id)
