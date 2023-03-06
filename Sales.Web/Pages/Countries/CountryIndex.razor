@@ -7,10 +7,10 @@
 
 <a class="btn btn-primary mb-3" href="/countries/create">Nuevo País</a>
 
-<Pagination CurrentPage="1" TotalPages="10" SelectedPage="SelectedPageAsync" />
+<Pagination CurrentPage="currentPage" TotalPages="totalPages" SelectedPage="SelectedPageAsync" />
 
 <GenericList MyList="Countries">
-  
+
     <Body>
         <table class="table table-striped">
             <thead>
@@ -43,7 +43,7 @@
 
 </GenericList>
 
- 
+
 
 @code {
     public List<Country>? Countries { get; set; }
@@ -59,14 +59,14 @@
     {
         try
         {
-            var responseHttp = await repository.Get<List<Country>>("api/countries");
-            Countries = responseHttp.Response;
-            //string url1 = $"api/countries?page={page}";
-            //string url2 = $"api/countries/totalPages";
+            //var responseHttp = await repository.Get<List<Country>>("/api/countries");
+            //Countries = responseHttp.Response;
+            string url1 = $"/api/countries?page={page}";
+            string url2 = $"/api/countries/totalPages";
 
-            //var responseHttp = await repository.Get<List<Country>>(url1);
-            //var responseHttp2 = await repository.Get<int>(url2);
-            //Countries = responseHttp.Response!;
+            var responseHttp = await repository.Get<List<Country>>(url1);
+            var responseHttp2 = await repository.Get<int>(url2);
+            Countries = responseHttp.Response!;
 
             var error = responseHttp.HttpResponseMessage.ToString();
             if (responseHttp.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
@@ -75,32 +75,32 @@
                 await sweetAlertServie.FireAsync("Error", message, SweetAlertIcon.Error);
                 return;
             }
-            //totalPages = responseHttp2.Response!;
+            totalPages = responseHttp2.Response!;
         }
         catch (Exception ex)
         {
-            
+
         }
-       
+
     }
 
     private async Task SelectedPageAsync(int page)
     {
-        //currentPage = page;
-        //await LoadAsync(page);
+        currentPage = page;
+        await LoadAsync(page);
     }
 
     private async Task DeleteAsync(int id)
     {
         var result = await sweetAlertServie.FireAsync(new SweetAlertOptions
-        {
-            Title = "Confirmación",
-            Text = "¿Desea eliminar el registro?",
-            Icon = SweetAlertIcon.Question,
-            ShowCancelButton = true,
-            CancelButtonText = "No",
-            ConfirmButtonText = "Si"
-        });
+            {
+                Title = "Confirmación",
+                Text = "¿Desea eliminar el registro?",
+                Icon = SweetAlertIcon.Question,
+                ShowCancelButton = true,
+                CancelButtonText = "No",
+                ConfirmButtonText = "Si"
+            });
 
         var confirm = string.IsNullOrEmpty(result.Value);
         if (confirm)
