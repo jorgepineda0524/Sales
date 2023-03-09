@@ -41,9 +41,9 @@
         });
 
         int objPage = TotalPages - CurrentPage > Radio ? CurrentPage : TotalPages - Radio;
-        for (int i = objPage; i <= TotalPages; i++)
+        for (int i = 1; i <= TotalPages; i++)
         {
-            if (i >= CurrentPage - Radio && i <= CurrentPage + Radio)
+            if ( i >= CurrentPage - Radio && i <= CurrentPage + Radio)
             {
                 Links.Add(new PageModel
                     {
@@ -52,6 +52,9 @@
                         Text = $"{i}"
                     });
             }
+
+            if (Links.Count() > Radio + 1)
+                break;
         }
 
         var linkNextEnable = CurrentPage != TotalPages;
@@ -62,8 +65,6 @@
                 Page = linkNextPage,
                 Enable = linkNextEnable
             });
-
-        
     }
 
     private async Task InternalSelectedPage(PageModel pageModel)
