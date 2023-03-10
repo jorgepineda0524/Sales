@@ -7,14 +7,17 @@
 
 <a class="btn btn-primary mb-3" href="/countries/create">Nuevo País</a>
 
+<Pagination CurrentPage="currentPage" TotalPages="totalPages" SelectedPage="SelectedPageAsync" />
+
 <GenericList MyList="Countries">
-  
+
     <Body>
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th></th>
                     <th>País</th>
+                    <th style="width:220px">Estados / Departamentos</th>
+                    <th style="width:260px"></th>
                 </tr>
             </thead>
             <tbody>
@@ -22,11 +25,15 @@
                 {
                     <tr>
                         <td>
-                            <a class="btn btn-warning" href="/countries/edit/@country.Id">Editar</a>
-                            <button class="btn btn-danger" @onclick=@(() => DeleteAsync(country.Id))>Borrar</button>
+                            @country.Name
                         </td>
                         <td>
-                            @country.Name
+                            @country.StatesNumber
+                        </td>
+                        <td>
+                            <a class="btn btn-info" href="/countries/details/@country.Id">Detalle</a>
+                            <a class="btn btn-warning" href="/countries/edit/@country.Id">Editar</a>
+                            <button class="btn btn-danger" @onclick=@(() => DeleteAsync(country.Id))>Borrar</button>
                         </td>
                     </tr>
                 }
@@ -36,33 +43,64 @@
 
 </GenericList>
 
- 
+
 
 @code {
     public List<Country>? Countries { get; set; }
+    private int currentPage = 1;
+    public int totalPages;
 
     protected async override Task OnInitializedAsync()
     {
         await LoadAsync();
     }
 
-    private async Task LoadAsync()
+    private async Task LoadAsync(int page = 1)
     {
-        var responseHppt = await repository.Get<List<Country>>("/api/countries");
-        Countries = responseHppt.Response;
+        try
+        {
+            //var responseHttp = await repository.Get<List<Country>>("/api/countries");
+            //Countries = responseHttp.Response;
+            string url1 = $"/api/countries?page={page}";
+            string url2 = $"/api/countries/totalPages";
+
+            var responseHttp = await repository.Get<List<Country>>(url1);
+            var responseHttp2 = await repository.Get<int>(url2);
+            Countries = responseHttp.Response!;
+
+            var error = responseHttp.HttpResponseMessage.ToString();
+            if (responseHttp.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
+            {
+                var message = await responseHttp.GetErrorMessageAsync();
+                await sweetAlertServie.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+            totalPages = responseHttp2.Response!;
+        }
+        catch (Exception ex)
+        {
+
+        }
+
+    }
+
+    private async Task SelectedPageAsync(int page)
+    {
+        currentPage = page;
+        await LoadAsync(page);
     }
 
     private async Task DeleteAsync(int id)
     {
         var result = await sweetAlertServie.FireAsync(new SweetAlertOptions
-        {
-            Title = "Confirmación",
-            Text = "¿Desea eliminar el registro?",
-            Icon = SweetAlertIcon.Question,
-            ShowCancelButton = true,
-            CancelButtonText = "No",
-            ConfirmButtonText = "Si"
-        });
+            {
+                Title = "Confirmación",
+                Text = "¿Desea eliminar el registro?",
+                Icon = SweetAlertIcon.Question,
+                ShowCancelButton = true,
+                CancelButtonText = "No",
+                ConfirmButtonText = "Si"
+            });
 
         var confirm = string.IsNullOrEmpty(result.Value);
         if (confirm)

@@ -7,6 +7,8 @@
 
 <a class="btn btn-primary mb-3" href="/categories/create">Nueva Categoría</a>
 
+<Pagination CurrentPage="currentPage" TotalPages="totalPages" SelectedPage="SelectedPageAsync" />
+
 <GenericList MyList="Categories">
 
     <Body>
@@ -38,16 +40,43 @@
 
 @code {
     public List<Category>? Categories { get; set; }
+    private int currentPage = 1;
+    public int totalPages;
 
     protected async override  Task OnInitializedAsync()
     {
         await LoadAsync();
     }
 
-    private async Task LoadAsync()
+    //private async Task LoadAsync()
+    //{
+    //    var responseHppt = await repository.Get<List<Category>>("/api/categories");
+    //    Categories = responseHppt.Response;
+    //}
+
+    private async Task LoadAsync(int page = 1)
     {
-        var responseHppt = await repository.Get<List<Category>>("/api/categories");
-        Categories = responseHppt.Response;
+        string url1 = $"/api/categories?page={page}";
+        string url2 = $"/api/categories/totalPages";
+
+        var responseHttp = await repository.Get<List<Category>>(url1);
+        var responseHttp2 = await repository.Get<int>(url2);
+        Categories = responseHttp.Response!;
+
+        var error = responseHttp.HttpResponseMessage.ToString();
+        if (responseHttp.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
+        {
+            var message = await responseHttp.GetErrorMessageAsync();
+            await sweetAlertServie.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+        totalPages = responseHttp2.Response!;
+    }
+
+    private async Task SelectedPageAsync(int page)
+    {
+        currentPage = page;
+        await LoadAsync(page);
     }
 
     private async Task DeleteAsync(int id)
