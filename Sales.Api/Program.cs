@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Sales.Api.Data;
+using Sales.Api.Helpers;
 using Sales.Api.Services;
+using Sales.Shared.Entities;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +15,20 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DataContext>(x => x.UseSqlServer("name=DefaultConnection"));
 builder.Services.AddTransient<SeedDb>();
 builder.Services.AddScoped<IApiService, ApiService>();
+builder.Services.AddScoped<IUserHelper, UserHelper>();
+
+builder.Services.AddIdentity<User, IdentityRole>(x =>
+{
+    x.User.RequireUniqueEmail = true;
+    x.Password.RequireDigit = false;
+    x.Password.RequiredUniqueChars = 0;
+    x.Password.RequireLowercase = false;
+    x.Password.RequireNonAlphanumeric = false;
+    x.Password.RequireUppercase = false;
+})
+    .AddEntityFrameworkStores<DataContext>()
+    .AddDefaultTokenProviders();
+
 
 var app = builder.Build();
 
@@ -36,6 +53,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
