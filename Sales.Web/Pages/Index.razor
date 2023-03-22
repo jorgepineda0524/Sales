@@ -2,6 +2,15 @@
 
 <PageTitle>Index</PageTitle>
 
+<AuthorizeView Roles="Admin"> @*si hay varios roles se separan por coma*@
+    <Authorized>
+        <p>Estas authenticado, @context.User.Identity?.Name</p>
+    </Authorized>
+    <NotAuthorized>
+        <p>No estas autorizado</p>
+    </NotAuthorized>
+</AuthorizeView>
+
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
