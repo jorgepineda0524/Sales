@@ -12,7 +12,6 @@ using System.Text;
 namespace Sales.Api.Controllers
 {
     [ApiController]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("/api/accounts")]
     public class AccountsController : ControllerBase
     {
