@@ -97,11 +97,18 @@
             url1 = $"/api/countries?page={page}&filter={Filter}";
             url2 = $"/api/countries/totalPages?filter={Filter}";
         }
-
-        var responseHttp1 = await repository.Get<List<Country>>(url1);
-        var responseHttp2 = await repository.Get<int>(url2);
-        Countries = responseHttp1.Response!;
-        totalPages = responseHttp2.Response!;
+        try
+        {
+            var responseHttp1 = await repository.Get<List<Country>>(url1);
+            var responseHttp2 = await repository.Get<int>(url2);
+            Countries = responseHttp1.Response!;
+            totalPages = responseHttp2.Response!;
+        }
+        catch (Exception ex)
+        {
+            await sweetAlertServie.FireAsync("Error", ex.Message, SweetAlertIcon.Error);
+        }
+        
     }
 
     private async Task SelectedPageAsync(int page)
