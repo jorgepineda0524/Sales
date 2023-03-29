@@ -107,7 +107,7 @@ else
         }
         else
         {
-            modalReference = Modal.Show<CityCreate>(string.Empty, new ModalParameters().Add("StateId", id));
+            modalReference = Modal.Show<CityCreate>(string.Empty, new ModalParameters().Add("StateId", state!.Id));
         }
 
         var result = await modalReference.Result;
