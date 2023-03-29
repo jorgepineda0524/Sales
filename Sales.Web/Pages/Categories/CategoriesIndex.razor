@@ -3,61 +3,125 @@
 @inject NavigationManager navigationManager
 @inject SweetAlertService sweetAlertServie
 
-<h3>Categorías</h3>
+@if (Categories is null)
+{
+    <div class="spinner" />
+}
+else
+{
+    <div class="card">
+        <div class="card-header">
+            <span>
+                <i class="oi oi-globe"></i> Categorias
+                <a class="btn btn-sm btn-primary float-end" @onclick=@(() => ShowModal())><i class="oi oi-plus"></i> Adicionar Categoria</a>
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="mb-2" style="display: flex; flex-wrap:wrap; align-items: center;">
+                <div>
+                    <input style="width: 400px;" type="text" class="form-control" id="titulo" placeholder="Buscar categoria..." @bind-value="Filter" />
+                </div>
+                <div class="mx-1">
+                    <button type="button" class="btn btn-outline-primary" @onclick="ApplyFilterAsync"><i class="oi oi-layers" /> Filtrar</button>
+                    <button type="button" class="btn btn-outline-danger" @onclick="CleanFilterAsync"><i class="oi oi-ban" /> Limpiar</button>
+                </div>
+            </div>
+            <Pagination CurrentPage="currentPage" TotalPages="totalPages" SelectedPage="SelectedPageAsync" />
 
-<a class="btn btn-primary mb-3" href="/categories/create">Nueva Categoría</a>
+            <GenericList MyList="Categories">
 
-<Pagination CurrentPage="currentPage" TotalPages="totalPages" SelectedPage="SelectedPageAsync" />
+                <Body>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Categoría</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var category in Categories!)
+                            {
+                                <tr>
+                                    <td>
+                                        @category.Name
+                                    </td>
+                                    <td>
+                                        <a class="btn btn-warning" @onclick=@(() => ShowModal(category.Id, true))><i class="oi oi-pencil" />Editar</a>
+                                        <button class="btn btn-danger" @onclick=@(() => DeleteAsync(category.Id))><i class="oi oi-trash" />Borrar</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </Body>
 
-<GenericList MyList="Categories">
+            </GenericList>
+        </div>
+    </div>
+}
 
-    <Body>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>Categoría</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var country in Categories!)
-                {
-                    <tr>
-                        <td>
-                            <a class="btn btn-warning" href="/categories/edit/@country.Id">Editar</a>
-                            <button class="btn btn-danger" @onclick=@(() => DeleteAsync(country.Id))>Borrar</button>
-                        </td>
-                        <td>
-                            @country.Name
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </Body>
 
-</GenericList>
 
 @code {
     public List<Category>? Categories { get; set; }
     private int currentPage = 1;
     public int totalPages;
 
-    protected async override  Task OnInitializedAsync()
+    [CascadingParameter]
+    IModalService Modal { get; set; } = default!;
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Page { get; set; } = string.Empty;
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Filter { get; set; } = string.Empty;
+
+    protected async override Task OnInitializedAsync()
     {
         await LoadAsync();
     }
 
-    //private async Task LoadAsync()
-    //{
-    //    var responseHppt = await repository.Get<List<Category>>("/api/categories");
-    //    Categories = responseHppt.Response;
-    //}
+    private async Task ShowModal(int id = 0, bool isEdit = false)
+    {
+        IModalReference modalReference;
+
+        if (isEdit)
+        {
+            modalReference = Modal.Show<CategoryEdit>(string.Empty, new ModalParameters().Add("Id", id));
+        }
+        else
+        {
+            modalReference = Modal.Show<CategoryCreate>();
+        }
+
+        var result = await modalReference.Result;
+        if (result.Confirmed)
+        {
+            await LoadAsync();
+        }
+    }
 
     private async Task LoadAsync(int page = 1)
     {
-        string url1 = $"/api/categories?page={page}";
-        string url2 = $"/api/categories/totalPages";
+        if (!string.IsNullOrWhiteSpace(Page))
+        {
+            page = Convert.ToInt32(Page);
+        }
+        string url1 = string.Empty;
+        string url2 = string.Empty;
+
+        if (string.IsNullOrEmpty(Filter))
+        {
+            url1 = $"/api/categories?page={page}";
+            url2 = $"/api/categories/totalPages";
+        }
+        else
+        {
+            url1 = $"/api/categories?page={page}&filter={Filter}";
+            url2 = $"/api/categories/totalPages?filter={Filter}";
+        }
 
         var responseHttp = await repository.Get<List<Category>>(url1);
         var responseHttp2 = await repository.Get<int>(url2);
@@ -70,6 +134,7 @@
             await sweetAlertServie.FireAsync("Error", message, SweetAlertIcon.Error);
             return;
         }
+
         totalPages = responseHttp2.Response!;
     }
 
@@ -109,5 +174,24 @@
         }
 
         await LoadAsync();
+    }
+
+    private async Task CleanFilterAsync()
+    {
+        Filter = string.Empty;
+        await ApplyFilterAsync();
+    }
+
+    private async Task ApplyFilterAsync()
+    {
+        int page = 1;
+
+        if (!string.IsNullOrWhiteSpace(Page))
+        {
+            page = Convert.ToInt32(Page);
+        }
+
+        await LoadAsync(page);
+        await SelectedPageAsync(page);
     }
 }
